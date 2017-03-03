@@ -33,6 +33,7 @@
         _colsInPortrait = 3;
         _colsInLandscape = 5;
         _minimumInteritemSpacing = 2.0;
+        _maximumImagesCount = 0;
         
         //Sample of how to select the collections you want to display:
         _customSmartCollections = @[@(PHAssetCollectionSubtypeSmartAlbumFavorites),
