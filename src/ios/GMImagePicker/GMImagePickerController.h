@@ -79,7 +79,6 @@ static CGSize const kPopoverContentSize = {480, 720};
 @property (nonatomic) NSInteger colsInPortrait;
 @property (nonatomic) NSInteger colsInLandscape;
 @property (nonatomic) double minimumInteritemSpacing;
-@property (nonatomic) NSInteger maximumImagesCount;
 
 
 @property (nonatomic, strong) UINavigationController *navigationController;
