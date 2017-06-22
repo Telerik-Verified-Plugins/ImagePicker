@@ -31,25 +31,34 @@ typedef enum : NSUInteger {
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
+- (void) sendPluginResultMessage:(BOOL)theMessage callbackId:(NSString*)callbackId_ {
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:theMessage];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackId_];
+}
+
 - (void) requestReadPermission:(CDVInvokedUrlCommand *)command {
     // [PHPhotoLibrary requestAuthorization:]
     // this method works only when it is a first time, see
     // https://developer.apple.com/library/ios/documentation/Photos/Reference/PHPhotoLibrary_Class/
-
+    
     PHAuthorizationStatus status = [PHPhotoLibrary authorizationStatus];
+    
     if (status == PHAuthorizationStatusAuthorized) {
+        [self sendPluginResultMessage:YES callbackId:command.callbackId];
         NSLog(@"Access has been granted.");
     } else if (status == PHAuthorizationStatusDenied) {
+        [self sendPluginResultMessage:NO callbackId:command.callbackId];
         NSLog(@"Access has been denied. Change your setting > this app > Photo enable");
     } else if (status == PHAuthorizationStatusNotDetermined) {
         // Access has not been determined. requestAuthorization: is available
-        [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {}];
+        [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus authStatus) {
+            [self sendPluginResultMessage:(authStatus == PHAuthorizationStatusAuthorized)
+                              callbackId:command.callbackId];
+        }];
     } else if (status == PHAuthorizationStatusRestricted) {
+        [self sendPluginResultMessage:NO callbackId:command.callbackId];
         NSLog(@"Access has been restricted. Change your setting > Privacy > Photo enable");
     }
-
-    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
 - (void) getPictures:(CDVInvokedUrlCommand *)command {
@@ -67,6 +76,13 @@ typedef enum : NSUInteger {
     self.width = [[options objectForKey:@"width"] integerValue];
     self.height = [[options objectForKey:@"height"] integerValue];
     self.quality = [[options objectForKey:@"quality"] integerValue];
+    
+    if ([options objectForKey:@"maximumImagesCount"]) {
+        self.maximumImagesCount = [[options objectForKey:@"maximumImagesCount"] integerValue];
+    }
+    else {
+        self.maximumImagesCount = 0;
+    }
 
     self.callbackId = command.callbackId;
     [self launchGMImagePicker:allow_video title:title message:message disable_popover:disable_popover];
@@ -81,6 +97,7 @@ typedef enum : NSUInteger {
     picker.colsInPortrait = 4;
     picker.colsInLandscape = 6;
     picker.minimumInteritemSpacing = 2.0;
+    picker.maximumImagesCount = self.maximumImagesCount;
 
 	if(!disable_popover) {
 	    picker.modalPresentationStyle = UIModalPresentationPopover;
