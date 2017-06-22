@@ -434,6 +434,24 @@ NSString * const GMGridViewCellIdentifier = @"GMGridViewCellIdentifier";
 
 - (BOOL)collectionView:(UICollectionView *)collectionView shouldSelectItemAtIndexPath:(NSIndexPath *)indexPath
 {
+    NSArray *selectedIndexPaths = [collectionView indexPathsForSelectedItems];
+    
+    if ((self.picker.maximumImagesCount > 0) &&
+        (selectedIndexPaths.count == self.picker.maximumImagesCount)) {
+        
+        if (self.picker.maximumImagesCount > 1) {
+            return NO;
+        }
+        else if (selectedIndexPaths.count == 1) {
+            NSIndexPath *previousIndexPath = selectedIndexPaths[0];
+            
+            if ([self collectionView:collectionView shouldDeselectItemAtIndexPath:previousIndexPath]) {
+                [collectionView deselectItemAtIndexPath:previousIndexPath animated:NO];
+                [self collectionView:collectionView didDeselectItemAtIndexPath:previousIndexPath];
+            }
+        }
+    }
+    
     PHAsset *asset = self.assetsFetchResults[indexPath.item];
     //GMFetchItem * fetch_item = [dic_asset_fetches objectForKey:[ NSNumber numberWithLong:indexPath.item ]];
     GMFetchItem * fetch_item = [dic_asset_fetches objectForKey:asset];
