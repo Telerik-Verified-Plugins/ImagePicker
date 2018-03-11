@@ -691,7 +691,7 @@ public class MultiImageChooserActivity extends AppCompatActivity implements
             bm.compress(Bitmap.CompressFormat.JPEG, quality, byteArrayOutputStream);
             byte[] byteArray = byteArrayOutputStream.toByteArray();
             return Base64.encodeToString(byteArray, Base64.NO_WRAP);
-        }
+       }
     }
 
     private int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {

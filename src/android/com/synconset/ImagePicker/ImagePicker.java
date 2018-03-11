@@ -3,6 +3,12 @@
  */
 package com.synconset;
 
+import java.io.ByteArrayOutputStream;
+import android.app.ProgressDialog;
+import android.os.AsyncTask;
+
+import android.content.Context;
+
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
 
@@ -12,6 +18,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.List;
+import android.support.annotation.NonNull;
+import android.util.Log;
+
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -22,9 +35,16 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.util.Base64;
+
+import com.yanzhenjie.album.Action;
+import com.yanzhenjie.album.Album;
+import com.yanzhenjie.album.AlbumFile;
+import com.yanzhenjie.album.api.widget.Widget;
 
 public class ImagePicker extends CordovaPlugin {
 
+    private final String TAG = "ImagePicker";
     private static final String ACTION_GET_PICTURES = "getPictures";
     private static final String ACTION_HAS_READ_PERMISSION = "hasReadPermission";
     private static final String ACTION_REQUEST_READ_PERMISSION = "requestReadPermission";
@@ -35,6 +55,7 @@ public class ImagePicker extends CordovaPlugin {
 
     public boolean execute(String action, final JSONArray args, final CallbackContext callbackContext) throws JSONException {
         this.callbackContext = callbackContext;
+        final Context context = cordova.getActivity();
 
         if (ACTION_HAS_READ_PERMISSION.equals(action)) {
             callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, hasReadPermission()));
@@ -46,7 +67,6 @@ public class ImagePicker extends CordovaPlugin {
 
         } else if (ACTION_GET_PICTURES.equals(action)) {
             final JSONObject params = args.getJSONObject(0);
-            final Intent imagePickerIntent = new Intent(cordova.getActivity(), MultiImageChooserActivity.class);
             int max = 20;
             int desiredWidth = 0;
             int desiredHeight = 0;
@@ -68,38 +88,108 @@ public class ImagePicker extends CordovaPlugin {
                 outputType = params.getInt("outputType");
             }
 
-            imagePickerIntent.putExtra("MAX_IMAGES", max);
-            imagePickerIntent.putExtra("WIDTH", desiredWidth);
-            imagePickerIntent.putExtra("HEIGHT", desiredHeight);
-            imagePickerIntent.putExtra("QUALITY", quality);
-            imagePickerIntent.putExtra("OUTPUT_TYPE", outputType);
-
-            // some day, when everybody uses a cordova version supporting 'hasPermission', enable this:
-            /*
-            if (cordova != null) {
-                 if (cordova.hasPermission(Manifest.permission.READ_EXTERNAL_STORAGE)) {
-                    cordova.startActivityForResult(this, imagePickerIntent, 0);
-                 } else {
-                     cordova.requestPermission(
-                             this,
-                             PERMISSION_REQUEST_CODE,
-                             Manifest.permission.READ_EXTERNAL_STORAGE
-                     );
-                 }
-             }
-             */
-            // .. until then use:
+            final int finalQuality = quality;
+            final int finalOutputType = outputType;
+            Log.d(TAG, "finalQuality: " + finalQuality);
+            Log.d(TAG, "finalOutputType: " + finalOutputType);
             if (hasReadPermission()) {
-                cordova.startActivityForResult(this, imagePickerIntent, 0);
+                int color = Color.parseColor("#42A6AC");
+                Widget widget = Widget.newDarkBuilder(context)
+                        .title("Seleccionar fotos")
+                        .statusBarColor(Color.BLACK)
+                        .toolBarColor(color)
+                        .navigationBarColor(Color.BLACK)
+                        .mediaItemCheckSelector(color, color)
+                        .bucketItemCheckSelector(color, color)
+                        .buttonStyle(
+                                Widget.ButtonStyle.newLightBuilder(context)
+                                        .setButtonSelector(Color.WHITE, Color.WHITE)
+                                        .build()
+                        ).build();
+
+                Album.image(context) // Image selection.
+                        .multipleChoice()
+                        .widget(widget)
+                        .requestCode(0)
+                        .camera(false)
+                        .columnCount(3)
+                        .selectCount(max)
+                        .filterSize(null) // Filter the file size.
+                        .filterMimeType(null) // Filter file format.
+                        .afterFilterVisibility(false) // Show the filtered files, but they are not available.
+                        .onResult(new Action<ArrayList<AlbumFile>>() {
+                            @Override
+                            public void onAction(int requestCode, @NonNull final ArrayList<AlbumFile> result) {
+                                new ImagesTask(callbackContext, context).execute(result);
+                            }
+                        }).onCancel(new Action<String>() {
+                            @Override
+                            public void onAction(int requestCode, @NonNull String result) {
+                                Log.d("App", "Error");
+                                callbackContext.error("No images selected");
+                            }
+                        }).start();
             } else {
                 requestReadPermission();
-                // The downside is the user needs to re-invoke this picker method.
-                // The best thing to do for the dev is check 'hasReadPermission' manually and
-                // run 'requestReadPermission' or 'getPictures' based on the outcome.
             }
             return true;
         }
         return false;
+    }
+
+    private String getBase64OfImage(Bitmap bm, int quality) {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        bm.compress(Bitmap.CompressFormat.JPEG, quality, byteArrayOutputStream);
+        byte[] byteArray = byteArrayOutputStream.toByteArray();
+        return Base64.encodeToString(byteArray, Base64.NO_WRAP);
+    }
+
+    private class ImagesTask extends AsyncTask<List<AlbumFile>, Integer, List<String>> {
+
+        private final String TAG = "MyTask";
+        private final CallbackContext callbackContext;
+        private final Context context;
+        private ProgressDialog loading;
+
+        public ImagesTask(CallbackContext callbackContext, Context context) {
+            this.callbackContext = callbackContext;
+            this.context = context;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            loading = new ProgressDialog(context);
+            loading.setMax(100);
+            loading.setMessage("Its loading....");
+            loading.setTitle("ProgressDialog bar example");
+            loading.show();
+        }
+
+        @Override
+        protected void onPostExecute(List<String> images) {
+            loading.dismiss();
+            JSONArray res = new JSONArray(images);
+            callbackContext.success(res);
+        }
+
+        @Override
+        protected List<String> doInBackground(List<AlbumFile>... params) {
+            List<String> images = new ArrayList<String>();
+            Bitmap bm;
+            for (AlbumFile af : params[0]) {
+                if(1 > 0) {//finalOutputType
+                    try {
+                        bm = BitmapFactory.decodeFile(af.getPath());
+                        images.add(getBase64OfImage(bm, 30));//finalQuality
+                    } catch(Exception ex) {
+
+                    }
+                } else {
+                    images.add(af.getPath());
+                }
+            }
+            return images;
+        }
     }
 
     @SuppressLint("InlinedApi")
@@ -121,49 +211,7 @@ public class ImagePicker extends CordovaPlugin {
         callbackContext.success();
     }
 
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (resultCode == Activity.RESULT_OK && data != null) {
-            ArrayList<String> fileNames = data.getStringArrayListExtra("MULTIPLEFILENAMES");
-            JSONArray res = new JSONArray(fileNames);
-            callbackContext.success(res);
-
-        } else if (resultCode == Activity.RESULT_CANCELED && data != null) {
-            String error = data.getStringExtra("ERRORMESSAGE");
-            callbackContext.error(error);
-
-        } else if (resultCode == Activity.RESULT_CANCELED) {
-            JSONArray res = new JSONArray();
-            callbackContext.success(res);
-
-        } else {
-            callbackContext.error("No images selected");
-        }
-    }
-
-    /**
-     * Choosing a picture launches another Activity, so we need to implement the
-     * save/restore APIs to handle the case where the CordovaActivity is killed by the OS
-     * before we get the launched Activity's result.
-     *
-     * @see http://cordova.apache.org/docs/en/dev/guide/platforms/android/plugin.html#launching-other-activities
-     */
     public void onRestoreStateForActivityResult(Bundle state, CallbackContext callbackContext) {
         this.callbackContext = callbackContext;
     }
-
-/*
-    @Override
-    public void onRequestPermissionResult(int requestCode,
-                                          String[] permissions,
-                                          int[] grantResults) throws JSONException {
-
-        // For now we just have one permission, so things can be kept simple...
-        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            cordova.startActivityForResult(this, imagePickerIntent, 0);
-        } else {
-            // Tell the JS layer that something went wrong...
-            callbackContext.error("Permission denied");
-        }
-    }
-*/
 }
