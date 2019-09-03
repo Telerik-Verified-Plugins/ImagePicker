@@ -1,6 +1,10 @@
 <resources>
     <string name="multi_app_name">"MultiImageChooser"</string>
-    <string name="free_version_label">"La version gratuite - gauche Images:%d"</string>
-    <string name="error_database">"Il y avait une erreur d'ouvrir la base de données images. S'il vous plaît signaler le problème."</string>
-    <string name="requesting_thumbnails">"Demande de vignettes, s'il vous plaît soyez patient"</string>
+    <string name="free_version_label">"Version gratuite - Images restantes:%d"</string>
+    <string name="error_database">"Une erreur s'est produite lors de l'ouverture de la base de données des images. N'hésitez pas à signaler le problème"</string>
+    <string name="requesting_thumbnails">"Vignettes en cours de chargement"</string>
+    <string name="multi_image_picker_processing_images_title">Traitement en cours</string>
+    <string name="multi_image_picker_processing_images_message">Cela peut prendre un moment</string>
+    <string name="discard" translatable="false">Annuler</string>
+    <string name="done" translatable="false">OK</string>
 </resources>
