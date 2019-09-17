@@ -8,7 +8,6 @@
 
 #import "SOSPicker.h"
 
-
 #import "GMImagePickerController.h"
 #import "GMFetchItem.h"
 
@@ -67,6 +66,15 @@ typedef enum : NSUInteger {
 
     NSDictionary *options = [command.arguments objectAtIndex: 0];
 
+    NSDictionary * sourceRect = [options objectForKey:@"sourceRect"];
+
+    self.sourceRect = CGRectMake(
+          (int)[[sourceRect objectForKey:@"x"] integerValue],
+          (int)[[sourceRect objectForKey:@"y"] integerValue],
+          (int)[[sourceRect objectForKey:@"width"] integerValue],
+          (int)[[sourceRect objectForKey:@"height"] integerValue]
+    );
+
     self.outputType = [[options objectForKey:@"outputType"] integerValue];
     BOOL allow_video = [[options objectForKey:@"allow_video" ] boolValue ];
     NSInteger maximumImagesCount = [[options objectForKey:@"maximumImagesCount"] integerValue];
@@ -101,7 +109,7 @@ typedef enum : NSUInteger {
         UIPopoverPresentationController *popPC = picker.popoverPresentationController;
         popPC.permittedArrowDirections = UIPopoverArrowDirectionAny;
         popPC.sourceView = picker.view;
-        //popPC.sourceRect = nil;
+        popPC.sourceRect = self.sourceRect;
     }
 
     [self.viewController showViewController:picker sender:nil];
