@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="multi_app_name">MultiImageChooser</string>
+    <string name="free_version_label">Gratis Versie - Afbeeldingen resterend: %d</string>
+    <string name="error_database">Er was een fout bij het openen van de afbeeldingen database. Meld het probleem alstublieft</string>
+    <string name="requesting_thumbnails">Ophalen van de voorbeelden, een moment geduld alstublieft</string>
+    <string name="multi_image_picker_processing_images_title">Verwerken van afbeeldingen</string>
+    <string name="multi_image_picker_processing_images_message">Dit kan even duren</string>
+    <string name="discard" translatable="false">Annuleren</string>
+    <string name="done" translatable="false">OKE</string>
+ </resources>
