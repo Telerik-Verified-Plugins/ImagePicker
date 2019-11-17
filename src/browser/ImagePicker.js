@@ -1,11 +1,12 @@
-var cacheDirectory;
+const cacheDirectory = (require('./isChrome')()) ? 'filesystem:' + window.location.origin + '/temporary/' : 'file:///temporary/';
+const nonScalableTypes = ['video', 'gif'];
 
 //Chrome needs its own stuff
-if (require('./isChrome')()) {
+/*if (require('./isChrome')()) {
   cacheDirectory = 'filesystem:' + window.location.origin + '/temporary/';
 } else {
   cacheDirectory = 'file:///temporary/';
-}
+}*/
 
 //Edge needs its own stuff
 if (!HTMLCanvasElement.prototype.toBlob) {
@@ -34,7 +35,8 @@ async function getPictures(successCallback, errorCallback, data) {
     width: 0,
     height: 0,
     quality: 100,
-    outputType: 0
+    outputType: 0,
+    allow_video: false
   }
 
   //Read params from cordova
@@ -43,8 +45,9 @@ async function getPictures(successCallback, errorCallback, data) {
   if (data[0].height) params.height = data[0].height;
   if (data[0].quality) params.quality = data[0].quality;
   if (data[0].outputType) params.outputType = data[0].outputType;
+  if (data[0].allow_video) params.allow_video = data[0].allow_video;
 
-  openImagePicker(params.maximumImagesCount, params.width, params.height, params.quality, params.outputType).then((images) => {
+  openImagePicker(params.maximumImagesCount, params.width, params.height, params.quality, params.outputType, params.allow_video).then((images) => {
     successCallback(images);
   }).catch((error) => {
     errorCallback(error);
@@ -61,12 +64,13 @@ async function requestReadPermission(successCallback, errorCallback, data) {
   successCallback();
 }
 
-function openImagePicker(maximumImagesCount, desiredWidth, desiredHeight, quality, outputType) {
+function openImagePicker(maximumImagesCount, desiredWidth, desiredHeight, quality, outputType, allowVideo) {
   return new Promise((resolve, reject) => {
     let fileChooser = document.createElement('input');
 
     fileChooser.type = 'file';
-    fileChooser.accept = 'image/png, image/jpeg';
+    fileChooser.accept = 'image/png, image/jpeg, image/gif';
+    if (allowVideo) fileChooser.accept += ', video/mp4, video/webm, video/ogg';
 
     if (maximumImagesCount > 1) {
       fileChooser.setAttribute('multiple', '');
@@ -114,33 +118,14 @@ function openImagePicker(maximumImagesCount, desiredWidth, desiredHeight, qualit
   });
 }
 
+//Promise resolving either a blob or a base64 string depending on outputType
 function resizeImage(file, desiredWidth, desiredHeight, quality, outputType) {
   return new Promise((resolve, reject) => {
-    let reader = new FileReader();
-
-    //if (desiredWidth == 0 || desiredHeight == 0 || ['gif'].some(type => file.type.includes(type))) {
-    if (desiredWidth == 0 || desiredHeight == 0) {
-      //Resolve original file if no scaling
-      //If we have a gif we do not resize it because we would loose animation
-      if (outputType == 0) {
-        //No scaling required and FILE_URI required?
-        //Lets just resolve the file, which is a blob
-        resolve(file);
-      } else {
-        //No scaling required and BASE64_STRING required?
-        //Lets read the file and resolve the base64
-        reader.readAsDataURL(file);
-
-        reader.onload = (e) => {
-          resolve(e.target.result);
-        };
-
-        reader.onerror = (error) => {
-          reject(error);
-        }
-      }
-    } else {
-      //We need to resize, so lets do it
+    if (outputType == 1 || ( (desiredWidth != 0 || desiredHeight != 0) && !nonScalableTypes.some(type => file.type.includes(type)) ) ) {
+      //BASE64_STRING required or
+      //Scaling required
+      //Base64 string needs to be jpeg formated so even if no scaling is required we need to do the conversion
+      let reader = new FileReader();
       reader.readAsDataURL(file);
 
       reader.onload = (e) => {
@@ -149,7 +134,7 @@ function resizeImage(file, desiredWidth, desiredHeight, quality, outputType) {
         img.onload = (pic) => {
           let canvas = document.createElement('canvas');
 
-          if (img.height > desiredHeight || img.width > desiredWidth) {
+          if ((img.height > desiredHeight || img.width > desiredWidth) && (desiredWidth != 0 || desiredHeight != 0)) {
             if ((img.height / desiredHeight) > (img.width / desiredWidth)) {
               canvas.width = img.width / (img.height / desiredHeight)
               canvas.height = desiredHeight;
@@ -172,7 +157,7 @@ function resizeImage(file, desiredWidth, desiredHeight, quality, outputType) {
             }, 'image/jpeg', (quality / 100));
 
           } else {
-            //base64 required
+            //BASE64_STRING required, resolve with a string
             //To be consistent with Android (and iOS) we remove the base64 header from the string
             resolve(ctx.canvas.toDataURL('image/jpeg', (quality / 100)).replace('data:image/jpeg;base64,', ''));
           }
@@ -182,6 +167,10 @@ function resizeImage(file, desiredWidth, desiredHeight, quality, outputType) {
       reader.onerror = (error) => {
         reject(error);
       }
+    } else {
+      //No scaling required and FILE_URI required?
+      //FILE_URI required, resolve with a blob (a file is a blob)
+      resolve(file);
     }
   });
 }
