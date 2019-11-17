@@ -1,13 +1,6 @@
 const cacheDirectory = (require('./isChrome')()) ? 'filesystem:' + window.location.origin + '/temporary/' : 'file:///temporary/';
 const nonScalableTypes = ['video', 'gif'];
 
-//Chrome needs its own stuff
-/*if (require('./isChrome')()) {
-  cacheDirectory = 'filesystem:' + window.location.origin + '/temporary/';
-} else {
-  cacheDirectory = 'file:///temporary/';
-}*/
-
 //Edge needs its own stuff
 if (!HTMLCanvasElement.prototype.toBlob) {
   Object.defineProperty(HTMLCanvasElement.prototype, 'toBlob', {
