@@ -75,7 +75,7 @@ function openImagePicker(maximumImagesCount, desiredWidth, desiredHeight, qualit
 
       if (event.target.files.length <= maximumImagesCount) {
         for (let file of event.target.files) {
-          fileNames.push(file.name);
+          fileNames.push('tmp_' + getDateTimeString() + '_' + file.name);
           resizeImagePromises.push(resizeImage(file, desiredWidth, desiredHeight, quality, outputType));
         }
 
@@ -190,6 +190,11 @@ function saveBlobToTemporaryFileSystem(blob, fileName) {
       });
     });
   });
+}
+
+function getDateTimeString() {
+  let d = new Date();
+  return d.getDate().toString() + d.getMonth().toString() + d.getFullYear().toString() + '_' + d.getHours().toString() + d.getMinutes().toString() + d.getSeconds().toString();
 }
 
 module.exports = {
