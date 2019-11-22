@@ -170,6 +170,13 @@ function resizeImage(file, desiredWidth, desiredHeight, quality, outputType) {
 
 function saveBlobToTemporaryFileSystem(blob, fileName) {
   return new Promise((resolve, reject) => {
+    //Just make sure file extensions matches file type if possible
+    var ext = fileName.split('.').pop();
+
+    if (blob.type && ext) {
+      if (!blob.type.includes(ext.toLowerCase())) fileName = fileName.replace(ext, blob.type.split('/').pop());
+    }
+
     window.requestFileSystem(window.TEMPORARY, blob.size, (fs) => {
       fs.root.getFile(fileName, {create: true, exclusive: false}, (fileEntry) => {
         fileEntry.createWriter((fileWriter) => {
