@@ -186,6 +186,7 @@ typedef enum : NSUInteger {
 
     NSError* err = nil;
     int i = 1;
+    CFAbsoluteTime timeInSeconds = CFAbsoluteTimeGetCurrent();
     NSString* filePath;
     CDVPluginResult* result = nil;
 
@@ -196,7 +197,7 @@ typedef enum : NSUInteger {
         }
 
         do {
-            filePath = [NSString stringWithFormat:@"%@/%@%03d.%@", docsPath, CDV_PHOTO_PREFIX, i++, @"jpg"];
+            filePath = [NSString stringWithFormat:@"%@/%@%03d%f.%@", docsPath, CDV_PHOTO_PREFIX, i++, timeInSeconds, @"jpg"];
         } while ([fileMgr fileExistsAtPath:filePath]);
 
         NSData* data = nil;
