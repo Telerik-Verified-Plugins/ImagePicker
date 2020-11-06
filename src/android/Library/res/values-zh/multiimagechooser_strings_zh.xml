@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="multi_app_name">图像多选</string>
+    <string name="free_version_label">免费版本 - 图像 剩余: %d</string>
+    <string name="error_database">打开图像数据库错误.</string>
+    <string name="requesting_thumbnails">获取缩略图中，请耐心等待</string>
+    <string name="multi_image_picker_processing_images_title">正在处理图像</string>
+    <string name="multi_image_picker_processing_images_message">将花费一些时间</string>
+    <string name="discard" translatable="false">取消</string>
+    <string name="done" translatable="false">确定</string>
+    <string name="max_count_photos_title">最多 %d 张照片</string>
+    <string name="max_count_photos_message">您一次只能选 %d 张照片</string>
+</resources>
