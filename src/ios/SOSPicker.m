@@ -195,6 +195,11 @@ typedef enum : NSUInteger {
             continue;
         }
 
+        if (item.video!=nil){
+            [result_all addObject:item.video];
+            continue;
+        }
+
         do {
             filePath = [NSString stringWithFormat:@"%@/%@%03d.%@", docsPath, CDV_PHOTO_PREFIX, i++, @"jpg"];
         } while ([fileMgr fileExistsAtPath:filePath]);
