@@ -18,6 +18,7 @@
 @property (nonatomic, assign) double percent;
 @property (nonatomic, strong) NSString * image_fullsize;
 @property (nonatomic, strong) NSString * image_thumb;
+@property (nonatomic, strong) NSString * video;
 
 
 @property (nonatomic, assign) bool be_saving_img_thumb;

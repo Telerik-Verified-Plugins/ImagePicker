@@ -19,6 +19,7 @@
 
 #define CDV_PHOTO_PREFIX @"cdv_photo_"
 #define CDV_THUMB_PREFIX @"cdv_thumb_"
+#define CDV_VIDEO_PREFIX @"cdv_video_"
 
 
 //Helper methods
@@ -556,6 +557,10 @@ NSString * const GMGridViewCellIdentifier = @"GMGridViewCellIdentifier";
     //GMFetchItem * fetch_item = [dic_asset_fetches objectForKey:[ NSNumber numberWithLong:indexPath.item ]];
     GMFetchItem * fetch_item = [dic_asset_fetches objectForKey:asset];
     
+    if (asset.mediaType==PHAssetMediaTypeVideo){
+        [self exportVideoAsset:asset andIndex:indexPath.item andFetchAsset:fetch_item];
+    }
+
     [self.picker selectAsset:asset];
     [self.picker selectFetchItem:fetch_item];
     
@@ -764,6 +769,32 @@ NSString * const GMGridViewCellIdentifier = @"GMGridViewCellIdentifier";
         [assets addObject:asset];
     }
     return assets;
+}
+
+#pragma mark - VideAssets
+-(void)exportVideoAsset:(PHAsset *)asset andIndex:(int)index andFetchAsset:(GMFetchItem *)fetchItem{
+    // if video
+    if (asset.mediaType==2){
+        
+        UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Preparing video"
+                                       message:@"Please wait..."
+                                       preferredStyle:UIAlertControllerStyleAlert];
+        [self presentViewController:alert animated:YES completion:nil];
+        
+        [self.imageManager requestExportSessionForVideo:asset options:nil exportPreset:@"AVAssetExportPresetPassthrough" resultHandler:^(AVAssetExportSession * _Nullable exportSession, NSDictionary * _Nullable info) {
+            NSString *filePath = [NSString stringWithFormat:@"%@/%@%03d.%@", docsPath, CDV_VIDEO_PREFIX, index, @"mov"];
+            exportSession.outputURL = [NSURL fileURLWithPath:filePath];
+            exportSession.outputFileType = AVFileTypeMPEG4;
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+            [exportSession exportAsynchronouslyWithCompletionHandler:^{
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    fetchItem.video = filePath;
+                    [alert dismissViewControllerAnimated:YES completion:^{}];
+                });
+            }];
+            });
+        }];
+    }
 }
 
 
