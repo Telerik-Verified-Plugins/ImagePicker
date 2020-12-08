@@ -771,30 +771,26 @@ NSString * const GMGridViewCellIdentifier = @"GMGridViewCellIdentifier";
     return assets;
 }
 
-#pragma mark - VideAssets
+#pragma mark - VideoAssets
 -(void)exportVideoAsset:(PHAsset *)asset andIndex:(int)index andFetchAsset:(GMFetchItem *)fetchItem{
-    // if video
-    if (asset.mediaType==2){
-        
-        UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Preparing video"
-                                       message:@"Please wait..."
-                                       preferredStyle:UIAlertControllerStyleAlert];
-        [self presentViewController:alert animated:YES completion:nil];
-        
-        [self.imageManager requestExportSessionForVideo:asset options:nil exportPreset:@"AVAssetExportPresetPassthrough" resultHandler:^(AVAssetExportSession * _Nullable exportSession, NSDictionary * _Nullable info) {
-            NSString *filePath = [NSString stringWithFormat:@"%@/%@%03d.%@", docsPath, CDV_VIDEO_PREFIX, index, @"mov"];
-            exportSession.outputURL = [NSURL fileURLWithPath:filePath];
-            exportSession.outputFileType = AVFileTypeMPEG4;
-            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-            [exportSession exportAsynchronouslyWithCompletionHandler:^{
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    fetchItem.video = filePath;
-                    [alert dismissViewControllerAnimated:YES completion:^{}];
-                });
-            }];
+    UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Preparing video"
+                                    message:@"Please wait..."
+                                    preferredStyle:UIAlertControllerStyleAlert];
+    [self presentViewController:alert animated:YES completion:nil];
+    
+    [self.imageManager requestExportSessionForVideo:asset options:nil exportPreset:@"AVAssetExportPresetPassthrough" resultHandler:^(AVAssetExportSession * _Nullable exportSession, NSDictionary * _Nullable info) {
+        NSString *filePath = [NSString stringWithFormat:@"%@/%@%03d.%@", docsPath, CDV_VIDEO_PREFIX, index, @"mov"];
+        exportSession.outputURL = [NSURL fileURLWithPath:filePath];
+        exportSession.outputFileType = AVFileTypeMPEG4;
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        [exportSession exportAsynchronouslyWithCompletionHandler:^{
+            dispatch_async(dispatch_get_main_queue(), ^{
+                fetchItem.video = filePath;
+                [alert dismissViewControllerAnimated:YES completion:^{}];
             });
         }];
-    }
+        });
+    }];
 }
 
 
