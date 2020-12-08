@@ -19,7 +19,7 @@
 @property (nonatomic, strong) NSString * image_fullsize;
 @property (nonatomic, strong) NSString * image_thumb;
 @property (nonatomic, strong) NSString * video;
-
+@property (nonatomic, strong) NSString * metadataJSON;
 
 @property (nonatomic, assign) bool be_saving_img_thumb;
 @property (nonatomic, assign) bool be_saving_img;

@@ -395,7 +395,6 @@ NSString * const GMGridViewCellIdentifier = @"GMGridViewCellIdentifier";
                                       if ( fetch_item.be_saving_img_thumb==false && fetch_item.image_thumb == nil && result!= nil ) {
                                           
                                           fetch_item.be_saving_img_thumb = true;
-                                          
                                           NSString * filePath;
                                           do {
                                               filePath = [NSString stringWithFormat:@"%@/%@%03d.%@", docsPath, CDV_THUMB_PREFIX, doc_thumbCount++, @"jpg"];
@@ -512,11 +511,41 @@ NSString * const GMGridViewCellIdentifier = @"GMGridViewCellIdentifier";
                 UIImage *imageToDisplay = result.fixOrientation; //  UIImage+fixOrientation extension
                 
                 NSLog(@"corrected orientation: %ld",(UIImageOrientation)imageToDisplay.imageOrientation);
-
+                NSData * imageData = UIImageJPEGRepresentation(imageToDisplay, 0.2f );
                 // setting compression to a low value (high compression) impact performance, but not actual img quality
-                if ( ![ UIImageJPEGRepresentation(imageToDisplay, 0.2f ) writeToFile:filePath atomically:YES ] ) {
+                if ( ![ imageData writeToFile:filePath atomically:YES ] ) {
                     return;
                 }
+                
+                [asset requestMetadataWithCompletionBlock:^(NSDictionary * _Nonnull metadata) {
+                    //fetch_item.metadata = metadata;
+                    
+                    NSError *error;
+                    NSData *jsonData;
+                    NSMutableDictionary * fetchMeta = [NSMutableDictionary new];
+                    @try {
+                        jsonData = [NSJSONSerialization dataWithJSONObject:[metadata objectForKey:@"{GPS}"] options:0 error:&error];
+                        [fetchMeta setObject:[metadata objectForKey:@"{GPS}"] forKey:@"gps"];
+                    } @catch (NSException *exception) {
+                        NSLog(@"ERROR - %@", exception);
+                    }
+                    
+                    @try {
+                    jsonData = [NSJSONSerialization dataWithJSONObject:[metadata objectForKey:@"{Exif}"] options:0 error:&error];
+                    [fetchMeta setObject:[metadata objectForKey:@"{Exif}"] forKey:@"exif"];
+                    } @catch (NSException *exception) {
+                        NSLog(@"ERROR - %@", exception);
+                    }
+                    [fetchMeta setValue:filePath forKey:@"image_fullsize"];
+                    
+                    NSDictionary *fetchMetaResult = [NSDictionary dictionaryWithDictionary:fetchMeta];
+                    
+                    
+                    jsonData = [NSJSONSerialization dataWithJSONObject:fetchMetaResult options:0 error:&error];
+                    NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+                    fetch_item.metadataJSON = jsonString;
+                    
+                }];
                 
                 fetch_item.image_fullsize = filePath;
                 fetch_item.be_saving_img = false;
