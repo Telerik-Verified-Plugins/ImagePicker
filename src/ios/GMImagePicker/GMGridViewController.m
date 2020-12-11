@@ -511,8 +511,8 @@ NSString * const GMGridViewCellIdentifier = @"GMGridViewCellIdentifier";
                 UIImage *imageToDisplay = result.fixOrientation; //  UIImage+fixOrientation extension
                 
                 NSLog(@"corrected orientation: %ld",(UIImageOrientation)imageToDisplay.imageOrientation);
-                NSData * imageData = UIImageJPEGRepresentation(imageToDisplay, 0.2f );
-                // setting compression to a low value (high compression) impact performance, but not actual img quality
+                NSData * imageData = UIImageJPEGRepresentation(imageToDisplay, 1.0f );
+                // setting compression to a 1.0 => keep original quality
                 if ( ![ imageData writeToFile:filePath atomically:YES ] ) {
                     return;
                 }
