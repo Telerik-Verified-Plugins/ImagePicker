@@ -40,7 +40,7 @@ typedef enum : NSUInteger {
     if (status == PHAuthorizationStatusAuthorized) {
         NSLog(@"Access has been granted.");
         
-        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:true];
         [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
     } else if (status == PHAuthorizationStatusDenied) {
         NSString* message = @"Access has been denied. Change your setting > this app > Photo enable";
@@ -54,7 +54,7 @@ typedef enum : NSUInteger {
             if (status == PHAuthorizationStatusAuthorized) {
                 NSLog(@"Access has been granted.");
 
-                CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+                CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:true];
                 [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
             } else if (status == PHAuthorizationStatusDenied) {
                 NSString* message = @"Access has been denied. Change your setting > this app > Photo enable";
