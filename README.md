@@ -111,6 +111,9 @@ Note that backward compatibility was added by checking for read permission autom
 If permission is needed the plugin will now show the permission request popup.
 The user will then need to allow access and invoke the same method again after doing so.
 
+## Android 10 (Q) Permissions/Storage
+Android 10/11 included various [storage updates](https://developer.android.com/about/versions/11/privacy/storage).  This plugin is not fully compatible with these updates, and as such requires the `requestLegacyExternalStorage` property to be set in the android manifest in order to run on Android 10 devices.  This also will require targetting API level 29 (but this is already a google play store requirement as of November 2020).  
+
 
 ## Libraries used
 
