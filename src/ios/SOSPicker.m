@@ -16,7 +16,8 @@
 
 typedef enum : NSUInteger {
     FILE_URI = 0,
-    BASE64_STRING = 1
+    BASE64_STRING = 1,
+    METADATA_JSON = 2
 } SOSPickerOutputType;
 
 @interface SOSPicker () <GMImagePickerControllerDelegate>
@@ -195,6 +196,11 @@ typedef enum : NSUInteger {
             continue;
         }
 
+        if (item.video!=nil){
+            [result_all addObject:item.video];
+            continue;
+        }
+
         do {
             filePath = [NSString stringWithFormat:@"%@/%@%03d.%@", docsPath, CDV_PHOTO_PREFIX, i++, @"jpg"];
         } while ([fileMgr fileExistsAtPath:filePath]);
@@ -208,7 +214,8 @@ typedef enum : NSUInteger {
             } else {
                 if (self.quality == 100) {
                     // no scaling, no downsampling, this is the fastest option
-                    [result_all addObject:item.image_fullsize];
+                    //[result_all addObject:item.image_fullsize];
+                    [result_all addObject:item.metadataJSON];
                 } else {
                     // resample first
                     UIImage* image = [UIImage imageNamed:item.image_fullsize];

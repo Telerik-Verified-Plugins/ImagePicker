@@ -66,6 +66,9 @@
         <header-file src="src/ios/GMImagePicker/GMPHAsset.h" />
         <source-file src="src/ios/GMImagePicker/GMPHAsset.m" />
 
+        <header-file src="src/ios/GMImagePicker/PHAsset+Meta.h" />
+        <source-file src="src/ios/GMImagePicker/PHAsset+Meta.m" />
+
         <resource-file src="src/ios/GMImagePicker/GMEmptyFolder@1x.png" />
         <resource-file src="src/ios/GMImagePicker/GMEmptyFolder@2x.png" />
 

@@ -19,6 +19,7 @@
 
 #define CDV_PHOTO_PREFIX @"cdv_photo_"
 #define CDV_THUMB_PREFIX @"cdv_thumb_"
+#define CDV_VIDEO_PREFIX @"cdv_video_"
 
 
 //Helper methods
@@ -394,7 +395,6 @@ NSString * const GMGridViewCellIdentifier = @"GMGridViewCellIdentifier";
                                       if ( fetch_item.be_saving_img_thumb==false && fetch_item.image_thumb == nil && result!= nil ) {
                                           
                                           fetch_item.be_saving_img_thumb = true;
-                                          
                                           NSString * filePath;
                                           do {
                                               filePath = [NSString stringWithFormat:@"%@/%@%03d.%@", docsPath, CDV_THUMB_PREFIX, doc_thumbCount++, @"jpg"];
@@ -511,11 +511,41 @@ NSString * const GMGridViewCellIdentifier = @"GMGridViewCellIdentifier";
                 UIImage *imageToDisplay = result.fixOrientation; //  UIImage+fixOrientation extension
                 
                 NSLog(@"corrected orientation: %ld",(UIImageOrientation)imageToDisplay.imageOrientation);
-
-                // setting compression to a low value (high compression) impact performance, but not actual img quality
-                if ( ![ UIImageJPEGRepresentation(imageToDisplay, 0.2f ) writeToFile:filePath atomically:YES ] ) {
+                NSData * imageData = UIImageJPEGRepresentation(imageToDisplay, 1.0f );
+                // setting compression to a 1.0 => keep original quality
+                if ( ![ imageData writeToFile:filePath atomically:YES ] ) {
                     return;
                 }
+                
+                [asset requestMetadataWithCompletionBlock:^(NSDictionary * _Nonnull metadata) {
+                    //fetch_item.metadata = metadata;
+                    
+                    NSError *error;
+                    NSData *jsonData;
+                    NSMutableDictionary * fetchMeta = [NSMutableDictionary new];
+                    @try {
+                        jsonData = [NSJSONSerialization dataWithJSONObject:[metadata objectForKey:@"{GPS}"] options:0 error:&error];
+                        [fetchMeta setObject:[metadata objectForKey:@"{GPS}"] forKey:@"gps"];
+                    } @catch (NSException *exception) {
+                        NSLog(@"ERROR - %@", exception);
+                    }
+                    
+                    @try {
+                    jsonData = [NSJSONSerialization dataWithJSONObject:[metadata objectForKey:@"{Exif}"] options:0 error:&error];
+                    [fetchMeta setObject:[metadata objectForKey:@"{Exif}"] forKey:@"exif"];
+                    } @catch (NSException *exception) {
+                        NSLog(@"ERROR - %@", exception);
+                    }
+                    [fetchMeta setValue:filePath forKey:@"image_fullsize"];
+                    
+                    NSDictionary *fetchMetaResult = [NSDictionary dictionaryWithDictionary:fetchMeta];
+                    
+                    
+                    jsonData = [NSJSONSerialization dataWithJSONObject:fetchMetaResult options:0 error:&error];
+                    NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+                    fetch_item.metadataJSON = jsonString;
+                    
+                }];
                 
                 fetch_item.image_fullsize = filePath;
                 fetch_item.be_saving_img = false;
@@ -556,6 +586,10 @@ NSString * const GMGridViewCellIdentifier = @"GMGridViewCellIdentifier";
     //GMFetchItem * fetch_item = [dic_asset_fetches objectForKey:[ NSNumber numberWithLong:indexPath.item ]];
     GMFetchItem * fetch_item = [dic_asset_fetches objectForKey:asset];
     
+    if (asset.mediaType==PHAssetMediaTypeVideo){
+        [self exportVideoAsset:asset andIndex:indexPath.item andFetchAsset:fetch_item];
+    }
+
     [self.picker selectAsset:asset];
     [self.picker selectFetchItem:fetch_item];
     
@@ -764,6 +798,28 @@ NSString * const GMGridViewCellIdentifier = @"GMGridViewCellIdentifier";
         [assets addObject:asset];
     }
     return assets;
+}
+
+#pragma mark - VideoAssets
+-(void)exportVideoAsset:(PHAsset *)asset andIndex:(int)index andFetchAsset:(GMFetchItem *)fetchItem{
+    UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Preparing video"
+                                    message:@"Please wait..."
+                                    preferredStyle:UIAlertControllerStyleAlert];
+    [self presentViewController:alert animated:YES completion:nil];
+    
+    [self.imageManager requestExportSessionForVideo:asset options:nil exportPreset:@"AVAssetExportPresetPassthrough" resultHandler:^(AVAssetExportSession * _Nullable exportSession, NSDictionary * _Nullable info) {
+        NSString *filePath = [NSString stringWithFormat:@"%@/%@%03d.%@", docsPath, CDV_VIDEO_PREFIX, index, @"mov"];
+        exportSession.outputURL = [NSURL fileURLWithPath:filePath];
+        exportSession.outputFileType = AVFileTypeMPEG4;
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        [exportSession exportAsynchronouslyWithCompletionHandler:^{
+            dispatch_async(dispatch_get_main_queue(), ^{
+                fetchItem.video = filePath;
+                [alert dismissViewControllerAnimated:YES completion:^{}];
+            });
+        }];
+        });
+    }];
 }
 
 
