@@ -313,6 +313,8 @@ public class MultiImageChooserActivity extends AppCompatActivity implements
         abDiscardView.setEnabled(false);
         abDoneView.setEnabled(false);
         progress.show();
+	progress.setCancelable(false);
+        progress.setCanceledOnTouchOutside(false);
 
         if (fileNames.isEmpty()) {
             setResult(RESULT_CANCELED);
