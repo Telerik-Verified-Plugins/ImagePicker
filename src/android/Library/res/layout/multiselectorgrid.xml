@@ -11,7 +11,7 @@
         android:layout_weight="1"
         android:columnWidth="0dip"
         android:fadingEdgeLength="10dip"
-        android:fastScrollEnabled="true"
+        android:fastScrollEnabled="false"
         android:gravity="center"
         android:horizontalSpacing="8dip"
         android:numColumns="3"
