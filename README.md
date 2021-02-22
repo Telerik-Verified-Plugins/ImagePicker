@@ -73,7 +73,12 @@ window.imagePicker.getPictures(
         // available options are 
         // window.imagePicker.OutputType.FILE_URI (0) or 
         // window.imagePicker.OutputType.BASE64_STRING (1)
-        outputType: int
+        outputType: int,
+
+        // sourceRect, defaults to {x: 0, y: 0, width: 0, height: 0}
+        // sets the popover arrow anchor position
+        // IOS only
+        sourceRect: {x: int, y: int, width: int, height: int}
     };
     
 ### Note for Android Use
