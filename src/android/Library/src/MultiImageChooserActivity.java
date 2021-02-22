@@ -3,25 +3,25 @@
  *
  * All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without 
+ * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following  conditions are met:
  *
- *   Redistributions of source code must retain the above copyright notice, 
+ *   Redistributions of source code must retain the above copyright notice,
  *      this list of conditions and the following disclaimer.
- *   Redistributions in binary form must reproduce the above copyright notice, 
- *      this list of conditions and the following  disclaimer in the 
+ *   Redistributions in binary form must reproduce the above copyright notice,
+ *      this list of conditions and the following  disclaimer in the
  *      documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,  BUT NOT LIMITED TO, THE 
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
- * ARE DISCLAIMED. IN NO EVENT  SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE 
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR  BUSINESS 
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDIN G NEGLIGENCE OR OTHERWISE) 
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,  BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT  SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR  BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDIN G NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH  DAMAGE
  *
  * Code modified by Andrew Stephan for Sync OnSet
@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -58,13 +59,15 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Matrix;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Base64;
+import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.Display;
 import android.view.LayoutInflater;
@@ -100,7 +103,7 @@ public class MultiImageChooserActivity extends AppCompatActivity implements
     private static final int CURSORLOADER_THUMBS = 0;
     private static final int CURSORLOADER_REAL = 1;
 
-    private Map<String, Integer> fileNames = new HashMap<String, Integer>();
+    private Map<String, Integer> fileNames = new LinkedHashMap<String, Integer>();
 
     private SparseBooleanArray checkStatus = new SparseBooleanArray();
 
@@ -428,8 +431,8 @@ public class MultiImageChooserActivity extends AppCompatActivity implements
     ********************/
     private class SquareImageView extends ImageView {
         public SquareImageView(Context context) {
-			super(context);
-		}
+            super(context);
+        }
 
         @Override
         public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
@@ -505,17 +508,20 @@ public class MultiImageChooserActivity extends AppCompatActivity implements
         }
     }
 
-    private class ResizeImagesTask extends AsyncTask<Set<Entry<String, Integer>>, Void, ArrayList<String>> {
+    private class ResizeImagesTask extends AsyncTask<Set<Entry<String, Integer>>, Void, ArrayList<Map<String, String>>> {
         private Exception asyncTaskError = null;
 
         @Override
-        protected ArrayList<String> doInBackground(Set<Entry<String, Integer>>... fileSets) {
+        protected ArrayList<Map<String, String>> doInBackground(Set<Entry<String, Integer>>... fileSets) {
             Set<Entry<String, Integer>> fileNames = fileSets[0];
-            ArrayList<String> al = new ArrayList<String>();
+            ArrayList<Map<String, String>> al = new ArrayList<Map<String, String>>();
             try {
                 Iterator<Entry<String, Integer>> i = fileNames.iterator();
                 Bitmap bmp;
+                Integer index = 0;
+
                 while (i.hasNext()) {
+                    index++;
                     Entry<String, Integer> imageInfo = i.next();
                     File file = new File(imageInfo.getKey());
                     int rotate = imageInfo.getValue();
@@ -566,32 +572,66 @@ public class MultiImageChooserActivity extends AppCompatActivity implements
                         }
                     }
 
-                    if (outputType == OutputType.FILE_URI) {
+                    Map<String, String> item = new HashMap<>();
+                    item.put("order", index.toString());
+
+                    ExifHelper exif = new ExifHelper();
+                    exif.createInFile(file.getAbsolutePath());
+                    exif.readExifData();
+//                    Log.i("image chooser GPS", exif.toString());
+
+                  item.put("aperture", exif.aperture);
+                  item.put("datetime", exif.datetime);
+                  item.put("exposureTime", exif.exposureTime);
+                  item.put("flash", exif.flash);
+                  item.put("focalLength", exif.focalLength);
+                  item.put("gpsAltitude", exif.gpsAltitude);
+                  item.put("gpsAltitudeRef", exif.gpsAltitudeRef);
+                  item.put("gpsDateStamp", exif.gpsDateStamp);
+                  item.put("gpsLatitude", exif.gpsLatitude==null ? null : exif.gpsLatitude.toString());
+                  item.put("gpsLatitudeDeg", exif.gpsLatitudeDeg);
+                  item.put("gpsLatitudeRef", exif.gpsLatitudeRef);
+                  item.put("gpsLongitude", exif.gpsLongitude==null ? null : exif.gpsLongitude.toString());
+                  item.put("gpsLongitudeDeg", exif.gpsLongitudeDeg);
+                  item.put("gpsLongitudeRef", exif.gpsLongitudeRef);
+                  item.put("gpsProcessingMethod", exif.gpsProcessingMethod);
+                  item.put("gpsTimestamp", exif.gpsTimestamp);
+                  item.put("iso", exif.iso);
+                  item.put("make", exif.make);
+                  item.put("model", exif.model);
+                  item.put("orientation", exif.orientation);
+                  item.put("whiteBalance", exif.whiteBalance);
+
+                  if (outputType == OutputType.FILE_URI) {
                         file = storeImage(bmp, file.getName());
-                        al.add(Uri.fromFile(file).toString());
+                        item.put("image_uri", Uri.fromFile(file).toString());
+//                        al.add(Uri.fromFile(file).toString());
 
                     } else if (outputType == OutputType.BASE64_STRING) {
-                        al.add(getBase64OfImage(bmp));
+                    item.put("image_base64", getBase64OfImage(bmp));
+//                    al.add(getBase64OfImage(bmp));
                     }
+                  al.add(item);
                 }
-                return al;
+              Log.i("image chooser", al.toString());
+              return al;
             } catch (IOException e) {
                 try {
                     asyncTaskError = e;
                     for (int i = 0; i < al.size(); i++) {
-                        URI uri = new URI(al.get(i));
+                        URI uri = new URI(al.get(i).get("image_uri"));
                         File file = new File(uri);
                         file.delete();
                     }
                 } catch (Exception ignore) {
                 }
 
-                return new ArrayList<String>();
+                return new ArrayList<Map<String, String>>();
             }
         }
 
         @Override
-        protected void onPostExecute(ArrayList<String> al) {
+        protected void onPostExecute(ArrayList<Map<String, String>> al) {
             Intent data = new Intent();
 
             if (asyncTaskError != null) {
@@ -602,7 +642,7 @@ public class MultiImageChooserActivity extends AppCompatActivity implements
 
             } else if (al.size() > 0) {
                 Bundle res = new Bundle();
-                res.putStringArrayList("MULTIPLEFILENAMES", al);
+                res.putSerializable("MULTIPLEFILENAMES", al);
 
                 if (imagecursor != null) {
                     res.putInt("TOTALFILES", imagecursor.getCount());
@@ -770,4 +810,101 @@ public class MultiImageChooserActivity extends AppCompatActivity implements
             throw new IllegalArgumentException("Invalid enum value specified");
         }
     }
+}
+
+class ExifHelper {
+  public String aperture = null;
+  public String datetime = null;
+  public String exposureTime = null;
+  public String flash = null;
+  public String focalLength = null;
+  public String gpsAltitude = null;
+  public String gpsAltitudeRef = null;
+  public String gpsDateStamp = null;
+  public Float gpsLatitude = null;
+  public String gpsLatitudeDeg = null;
+  public String gpsLatitudeRef = null;
+  public Float gpsLongitude = null;
+  public String gpsLongitudeDeg = null;
+  public String gpsLongitudeRef = null;
+  public String gpsProcessingMethod = null;
+  public String gpsTimestamp = null;
+  public String iso = null;
+  public String make = null;
+  public String model = null;
+  public String orientation = null;
+  public String whiteBalance = null;
+
+  private ExifInterface inFile = null;
+//  private ExifInterface outFile = null;
+
+  /**
+   * The file before it is compressed
+   *
+   * @param filePath
+   * @throws IOException
+   */
+  public void createInFile(String filePath) throws IOException {
+    this.inFile = new ExifInterface(filePath);
+  }
+
+  /**
+   * The file after it has been compressed
+   *
+   * @param filePath
+   * @throws IOException
+   */
+//  public void createOutFile(String filePath) throws IOException {
+//    this.outFile = new ExifInterface(filePath);
+//  }
+
+  /**
+   * Reads all the EXIF data from the input file.
+   */
+  public void readExifData() {
+    float[] latlng = new float[2];
+    boolean haveLatlng = inFile.getLatLong(latlng);
+
+    this.aperture = inFile.getAttribute(ExifInterface.TAG_APERTURE);
+    this.datetime = inFile.getAttribute(ExifInterface.TAG_DATETIME);
+    this.exposureTime = inFile.getAttribute(ExifInterface.TAG_EXPOSURE_TIME);
+    this.flash = inFile.getAttribute(ExifInterface.TAG_FLASH);
+    this.focalLength = inFile.getAttribute(ExifInterface.TAG_FOCAL_LENGTH);
+    this.gpsAltitude = inFile.getAttribute(ExifInterface.TAG_GPS_ALTITUDE);
+    this.gpsAltitudeRef = inFile.getAttribute(ExifInterface.TAG_GPS_ALTITUDE_REF);
+    this.gpsDateStamp = inFile.getAttribute(ExifInterface.TAG_GPS_DATESTAMP);
+    this.gpsLatitude = haveLatlng ? latlng[0] : null;
+    this.gpsLatitudeDeg = inFile.getAttribute(ExifInterface.TAG_GPS_LATITUDE);
+    this.gpsLatitudeRef = inFile.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF);
+    this.gpsLongitude = haveLatlng ? latlng[1] : null;
+    this.gpsLongitudeDeg = inFile.getAttribute(ExifInterface.TAG_GPS_LONGITUDE);
+    this.gpsLongitudeRef = inFile.getAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF);
+    this.gpsProcessingMethod = inFile.getAttribute(ExifInterface.TAG_GPS_PROCESSING_METHOD);
+    this.gpsTimestamp = inFile.getAttribute(ExifInterface.TAG_GPS_TIMESTAMP);
+    this.iso = inFile.getAttribute(ExifInterface.TAG_ISO);
+    this.make = inFile.getAttribute(ExifInterface.TAG_MAKE);
+    this.model = inFile.getAttribute(ExifInterface.TAG_MODEL);
+    this.orientation = inFile.getAttribute(ExifInterface.TAG_ORIENTATION);
+    this.whiteBalance = inFile.getAttribute(ExifInterface.TAG_WHITE_BALANCE);
+  }
+
+  public int getOrientation() {
+    int o = Integer.parseInt(this.orientation);
+
+    if (o == ExifInterface.ORIENTATION_NORMAL) {
+      return 0;
+    } else if (o == ExifInterface.ORIENTATION_ROTATE_90) {
+      return 90;
+    } else if (o == ExifInterface.ORIENTATION_ROTATE_180) {
+      return 180;
+    } else if (o == ExifInterface.ORIENTATION_ROTATE_270) {
+      return 270;
+    } else {
+      return 0;
+    }
+  }
+
+  public void resetOrientation() {
+    this.orientation = "" + ExifInterface.ORIENTATION_NORMAL;
+  }
 }
