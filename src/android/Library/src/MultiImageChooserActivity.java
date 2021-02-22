@@ -184,6 +184,14 @@ public class MultiImageChooserActivity extends AppCompatActivity implements
     }
 
     @Override
+    protected void onDestroy() {
+        if (progress != null && progress.isShowing()) {
+            progress.dismiss();
+        }
+        super.onDestroy();
+    }
+
+    @Override
     public void onItemClick(AdapterView<?> arg0, View view, int position, long id) {
         String name = getImageName(position);
         int rotation = getImageRotation(position);
@@ -310,6 +318,11 @@ public class MultiImageChooserActivity extends AppCompatActivity implements
     }
 
     public void selectClicked() {
+        // try solve potential leak exception
+        if (progress.isShowing()) {
+            return;
+        }
+
         abDiscardView.setEnabled(false);
         abDoneView.setEnabled(false);
         progress.show();
@@ -615,8 +628,8 @@ public class MultiImageChooserActivity extends AppCompatActivity implements
             } else {
                 setResult(RESULT_CANCELED, data);
             }
-
-            progress.dismiss();
+            // do dismiss() in onDestroy() to solve potential leak exceptions
+            // progress.dismiss();
             finish();
         }
 
