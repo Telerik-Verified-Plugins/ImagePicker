@@ -112,6 +112,13 @@ If permission is needed the plugin will now show the permission request popup.
 The user will then need to allow access and invoke the same method again after doing so.
 
 
+in /platforms/android/project.properties remove all other com.android.support:support and com.android.support:appcompat and leave the latest ones. as:
+
+```
+cordova.system.library.9=com.android.support:support-v13:26.+
+cordova.system.library.7=com.android.support:appcompat-v7:26.+
+```
+
 ## Libraries used
 
 #### ELCImagePicker

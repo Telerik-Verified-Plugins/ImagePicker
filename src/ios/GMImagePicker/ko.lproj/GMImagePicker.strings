@@ -1,0 +1,33 @@
+/* Cancel */
+"picker.navigation.cancel-button" = "취소";
+
+/* Done */
+"picker.navigation.done-button" = "완료";
+
+/* Navigation bar default title */
+"picker.navigation.title" = "이미지 선택";
+
+/* %@ Items Selected */
+"picker.selection.multiple-items" = "%@ 항목 선택";
+
+/* %@ Photos Selected */
+"picker.selection.multiple-photos" = "%@ 사진 선택";
+
+/* %@ Videos Selected */
+"picker.selection.multiple-videos" = "%@ 동영상 선택";
+
+/* 1 Photo Selected */
+"picker.selection.single-photo" = "1 사진 선택됨";
+
+/* 1 Video Selected */
+"picker.selection.single-video" = "1 동영상 선택됨";
+
+/* All photos */
+    "picker.table.all-photos-label" = "모든 사진";
+
+/* Smart Albums */
+"picker.table.smart-albums-header" = "스마트 앨범";
+
+/* Albums */
+    "picker.table.user-albums-header" = "앨범";
+
