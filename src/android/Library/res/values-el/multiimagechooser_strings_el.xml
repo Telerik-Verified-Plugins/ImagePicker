@@ -8,4 +8,9 @@
     <string name="multi_image_picker_processing_images_message">Η διαδικασία ενδέχεται να χρειαστεί αρκετό χρόνο</string>
     <string name="discard" translatable="false">Άκυρο</string>
     <string name="done" translatable="false">ΟΚ</string>
+    <string name="max_count_photos_title">Μέγιστος αριθμός φωτογραφιών: %d</string>
+    <string name="max_count_photos_message">Μπορείς να επιλέξεις έως %d φωτογραφίες.</string>
  </resources>
+
+
+
