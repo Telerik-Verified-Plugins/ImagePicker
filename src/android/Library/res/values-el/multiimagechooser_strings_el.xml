@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="multi_app_name">MultiImageChooser</string>
+    <string name="free_version_label">Δωρεάν έκδοση - Υπόλοιπο εικόνων: %d</string>
+    <string name="error_database">Υπήρξε κάποιο σφάλμα στη βάση κατά το άνοιγμα των εικόνων. Παρακαλούμε να αναφέρετε το πρόβλημα!</string>
+    <string name="requesting_thumbnails">Φόρτωση των εικόνων, παρακαλώ περιμένετε</string>
+    <string name="multi_image_picker_processing_images_title">Επεξεργασία εικόνων</string>
+    <string name="multi_image_picker_processing_images_message">Η διαδικασία ενδέχεται να χρειαστεί αρκετό χρόνο</string>
+    <string name="discard" translatable="false">Άκυρο</string>
+    <string name="done" translatable="false">ΟΚ</string>
+    <string name="max_count_photos_title">Μέγιστος αριθμός φωτογραφιών: %d</string>
+    <string name="max_count_photos_message">Μπορείς να επιλέξεις έως %d φωτογραφίες.</string>
+ </resources>
+
+
+
