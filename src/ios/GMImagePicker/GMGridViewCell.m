@@ -68,8 +68,8 @@ static UIColor *disabledColor;
             _imageView.contentMode = UIViewContentModeScaleAspectFill;
         }*/
         _imageView.clipsToBounds = YES;
-        //_imageView.translatesAutoresizingMaskIntoConstraints = NO;
-        //_imageView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
+        _imageView.translatesAutoresizingMaskIntoConstraints = NO;
+        _imageView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
         [self addSubview:_imageView];
         
         
@@ -116,7 +116,22 @@ static UIColor *disabledColor;
         _coverView.hidden = YES;
         
         _selectedButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        _selectedButton.frame = CGRectMake(2*self.bounds.size.width/3, 0*self.bounds.size.width/3, self.bounds.size.width/3, self.bounds.size.width/3);
+        if ( UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad )
+        {
+            _selectedButton.frame = CGRectMake(2*self.bounds.size.width/3, 0*self.bounds.size.width/3, self.bounds.size.width/3, self.bounds.size.width/3);
+        
+        }else{
+            CGFloat thumnailSize = cellSize/2;
+            UIDeviceOrientation deviceOrientation = [[UIDevice currentDevice] orientation];
+            if(deviceOrientation == UIDeviceOrientationPortrait){
+                thumnailSize = cellSize/2;
+            }else{
+                thumnailSize = cellSize/2.5;
+            }
+            _selectedButton.frame = CGRectMake(self.bounds.origin.x  , self.bounds.origin.y, self.bounds.size.width , self.bounds.size.height);
+            _selectedButton.imageEdgeInsets = UIEdgeInsetsMake(0, _selectedButton.frame.origin.x + thumnailSize,_selectedButton.frame.origin.y + thumnailSize , 0);
+        }
+       
         _selectedButton.contentMode = UIViewContentModeTopRight;
         _selectedButton.adjustsImageWhenHighlighted = NO;
         [_selectedButton setImage:nil forState:UIControlStateNormal];
