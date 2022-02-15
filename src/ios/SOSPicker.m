@@ -95,6 +95,10 @@ typedef enum : NSUInteger {
     picker.colsInLandscape = 6;
     picker.minimumInteritemSpacing = 2.0;
 
+    if (@available(iOS 13.0, *)) {
+        picker.modalPresentationStyle = UIModalPresentationFullScreen;
+    }
+
     if(!disable_popover) {
         picker.modalPresentationStyle = UIModalPresentationPopover;
 
