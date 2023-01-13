@@ -139,8 +139,10 @@
         <resource-file src="src/android/Library/res/layout/actionbar_done_button.xml" target="res/layout/actionbar_done_button.xml"/>
         <resource-file src="src/android/Library/res/layout/multiselectorgrid.xml" target="res/layout/multiselectorgrid.xml"/>
         <resource-file src="src/android/Library/res/values/multiimagechooser_strings_en.xml" target="res/values/multiimagechooser_strings_en.xml"/>
-        <resource-file src="src/android/Library/res/values/themes.xml" target="res/values/themes.xml"/>
-
+        <config-file target="res/values/themes.xml" parent="/resources">
+            <style name="MyTheme" parent="android:Theme.Holo.Light">
+            </style>
+        </config-file>
         <resource-file src="src/android/Library/res/values-de/multiimagechooser_strings_de.xml" target="res/values-de/multiimagechooser_strings_de.xml"/>
         <resource-file src="src/android/Library/res/values-es/multiimagechooser_strings_es.xml" target="res/values-es/multiimagechooser_strings_es.xml"/>
         <resource-file src="src/android/Library/res/values-fr/multiimagechooser_strings_fr.xml" target="res/values-fr/multiimagechooser_strings_fr.xml"/>
