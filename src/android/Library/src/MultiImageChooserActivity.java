@@ -3,25 +3,25 @@
  *
  * All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without 
+ * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following  conditions are met:
  *
- *   Redistributions of source code must retain the above copyright notice, 
+ *   Redistributions of source code must retain the above copyright notice,
  *      this list of conditions and the following disclaimer.
- *   Redistributions in binary form must reproduce the above copyright notice, 
- *      this list of conditions and the following  disclaimer in the 
+ *   Redistributions in binary form must reproduce the above copyright notice,
+ *      this list of conditions and the following  disclaimer in the
  *      documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,  BUT NOT LIMITED TO, THE 
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
- * ARE DISCLAIMED. IN NO EVENT  SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE 
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR  BUSINESS 
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDIN G NEGLIGENCE OR OTHERWISE) 
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,  BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT  SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR  BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDIN G NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH  DAMAGE
  *
  * Code modified by Andrew Stephan for Sync OnSet
@@ -30,6 +30,7 @@
 
 package com.synconset;
 
+import java.io.InputStream;
 import java.net.URI;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -62,8 +63,8 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.ActionBar;
 import android.util.Base64;
 import android.util.SparseBooleanArray;
 import android.view.Display;
@@ -218,9 +219,9 @@ public class MultiImageChooserActivity extends AppCompatActivity implements
                 ImageView imageView = (ImageView) view;
 
                 if (android.os.Build.VERSION.SDK_INT >= 16) {
-                  imageView.setImageAlpha(128);
+                    imageView.setImageAlpha(128);
                 } else {
-                  imageView.setAlpha(128);
+                    imageView.setAlpha(128);
                 }
 
                 view.setBackgroundColor(selectedColor);
@@ -424,12 +425,12 @@ public class MultiImageChooserActivity extends AppCompatActivity implements
 
 
     /*********************
-    * Nested Classes
-    ********************/
+     * Nested Classes
+     ********************/
     private class SquareImageView extends ImageView {
         public SquareImageView(Context context) {
-			super(context);
-		}
+            super(context);
+        }
 
         @Override
         public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
@@ -481,18 +482,18 @@ public class MultiImageChooserActivity extends AppCompatActivity implements
 
             if (isChecked(position)) {
                 if (android.os.Build.VERSION.SDK_INT >= 16) {
-                  imageView.setImageAlpha(128);
+                    imageView.setImageAlpha(128);
                 } else {
-                  imageView.setAlpha(128);
+                    imageView.setAlpha(128);
                 }
 
                 imageView.setBackgroundColor(selectedColor);
 
             } else {
                 if (android.os.Build.VERSION.SDK_INT >= 16) {
-                  imageView.setImageAlpha(255);
+                    imageView.setImageAlpha(255);
                 } else {
-                  imageView.setAlpha(255);
+                    imageView.setAlpha(255);
                 }
                 imageView.setBackgroundColor(Color.TRANSPARENT);
             }
@@ -522,7 +523,17 @@ public class MultiImageChooserActivity extends AppCompatActivity implements
                     BitmapFactory.Options options = new BitmapFactory.Options();
                     options.inSampleSize = 1;
                     options.inJustDecodeBounds = true;
-                    BitmapFactory.decodeFile(file.getAbsolutePath(), options);
+
+                    InputStream is = null;
+                    try {
+                        is = getContentResolver().openInputStream(Uri.fromFile(file));
+                        BitmapFactory.decodeStream(is, null, options);
+                    } finally {
+                        if (is != null) {
+                            is.close();
+                        }
+                    }
+
                     int width = options.outWidth;
                     int height = options.outHeight;
                     float scale = calculateScale(width, height);
@@ -624,40 +635,48 @@ public class MultiImageChooserActivity extends AppCompatActivity implements
                                       BitmapFactory.Options options,
                                       int rotate,
                                       boolean shouldScale) throws IOException, OutOfMemoryError {
-            Bitmap bmp;
-            if (options == null) {
-                bmp = BitmapFactory.decodeFile(file.getAbsolutePath());
-            } else {
-                bmp = BitmapFactory.decodeFile(file.getAbsolutePath(), options);
-            }
+            InputStream is = null;
+            try {
+                is = getContentResolver().openInputStream(Uri.fromFile(file));
+                Bitmap bmp;
+                if (options == null) {
+                    bmp = BitmapFactory.decodeStream(is);
+                } else {
+                    bmp = BitmapFactory.decodeStream(is, null, options);
+                }
 
-            if (bmp == null) {
-                throw new IOException("The image file could not be opened.");
-            }
+                if (bmp == null) {
+                    throw new IOException("The image file could not be opened.");
+                }
 
-            if (options != null && shouldScale) {
-                float scale = calculateScale(options.outWidth, options.outHeight);
-                bmp = this.getResizedBitmap(bmp, scale);
-            }
+                if (options != null && shouldScale) {
+                    float scale = calculateScale(options.outWidth, options.outHeight);
+                    bmp = this.getResizedBitmap(bmp, scale);
+                }
 
-            if (rotate != 0) {
-                Matrix matrix = new Matrix();
-                matrix.setRotate(rotate);
-                bmp = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
-            }
+                if (rotate != 0) {
+                    Matrix matrix = new Matrix();
+                    matrix.setRotate(rotate);
+                    bmp = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
+                }
 
-            return bmp;
+                return bmp;
+            } finally {
+                if (is != null) {
+                    is.close();
+                }
+            }
         }
 
         /*
-        * The following functions are originally from
-        * https://github.com/raananw/PhoneGap-Image-Resizer
-        *
-        * They have been modified by Andrew Stephan for Sync OnSet
-        *
-        * The software is open source, MIT Licensed.
-        * Copyright (C) 2012, webXells GmbH All Rights Reserved.
-        */
+         * The following functions are originally from
+         * https://github.com/raananw/PhoneGap-Image-Resizer
+         *
+         * They have been modified by Andrew Stephan for Sync OnSet
+         *
+         * The software is open source, MIT Licensed.
+         * Copyright (C) 2012, webXells GmbH All Rights Reserved.
+         */
         private File storeImage(Bitmap bmp, String fileName) throws IOException {
             int index = fileName.lastIndexOf('.');
             String name = fileName.substring(0, index);
@@ -687,7 +706,7 @@ public class MultiImageChooserActivity extends AppCompatActivity implements
             return Bitmap.createBitmap(bm, 0, 0, width, height, matrix, false);
         }
 
-       private String getBase64OfImage(Bitmap bm) {
+        private String getBase64OfImage(Bitmap bm) {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             bm.compress(Bitmap.CompressFormat.JPEG, quality, byteArrayOutputStream);
             byte[] byteArray = byteArrayOutputStream.toByteArray();

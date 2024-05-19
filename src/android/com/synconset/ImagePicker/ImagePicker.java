@@ -20,8 +20,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 public class ImagePicker extends CordovaPlugin {
 
@@ -77,13 +77,13 @@ public class ImagePicker extends CordovaPlugin {
             // some day, when everybody uses a cordova version supporting 'hasPermission', enable this:
             /*
             if (cordova != null) {
-                 if (cordova.hasPermission(Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                 if (cordova.hasPermission(Manifest.permission.READ_MEDIA_IMAGES)) {
                     cordova.startActivityForResult(this, imagePickerIntent, 0);
                  } else {
                      cordova.requestPermission(
                              this,
                              PERMISSION_REQUEST_CODE,
-                             Manifest.permission.READ_EXTERNAL_STORAGE
+                             Manifest.permission.READ_MEDIA_IMAGES
                      );
                  }
              }
@@ -102,10 +102,14 @@ public class ImagePicker extends CordovaPlugin {
         return false;
     }
 
+    private String getMediaPermissionName() {
+        return Build.VERSION.SDK_INT >= 33 ? Manifest.permission.READ_MEDIA_IMAGES : Manifest.permission.READ_EXTERNAL_STORAGE;
+    }
+
     @SuppressLint("InlinedApi")
     private boolean hasReadPermission() {
         return Build.VERSION.SDK_INT < 23 ||
-            PackageManager.PERMISSION_GRANTED == ContextCompat.checkSelfPermission(this.cordova.getActivity(), Manifest.permission.READ_EXTERNAL_STORAGE);
+            PackageManager.PERMISSION_GRANTED == ContextCompat.checkSelfPermission(this.cordova.getActivity(), this.getMediaPermissionName());
     }
 
     @SuppressLint("InlinedApi")
@@ -113,7 +117,7 @@ public class ImagePicker extends CordovaPlugin {
         if (!hasReadPermission()) {
             ActivityCompat.requestPermissions(
                 this.cordova.getActivity(),
-                new String[] {Manifest.permission.READ_EXTERNAL_STORAGE},
+                new String[] {this.getMediaPermissionName()},
                 PERMISSION_REQUEST_CODE);
         }
         // This method executes async and we seem to have no known way to receive the result

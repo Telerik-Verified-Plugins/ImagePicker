@@ -2,7 +2,7 @@
 <plugin xmlns="http://www.phonegap.com/ns/plugins/1.0"
   xmlns:android="http://schemas.android.com/apk/res/android"
   id="cordova-plugin-telerik-imagepicker"
-  version="2.3.5">
+  version="2.3.7">
 
     <name>ImagePicker</name>
 
@@ -108,10 +108,8 @@
 
         <config-file target="AndroidManifest.xml" parent="/manifest">
             <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+            <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
         </config-file>
-
-        <preference name="ANDROID_SUPPORT_V7_VERSION" default="27.+"/>
-        <framework src="com.android.support:appcompat-v7:$ANDROID_SUPPORT_V7_VERSION" />
 
         <source-file src="src/android/com/synconset/ImagePicker/ImagePicker.java" target-dir="src/com/synconset" />
         <source-file src="src/android/com/synconset/ImagePicker/FakeR.java" target-dir="src/com/synconset" />
