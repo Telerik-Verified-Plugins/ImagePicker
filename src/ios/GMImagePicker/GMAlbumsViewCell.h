@@ -1,3 +1,4 @@
+#import <UIKit/UIKit.h>
 //
 //  GMAlbumsViewCell.h
 //  GMPhotoPicker
