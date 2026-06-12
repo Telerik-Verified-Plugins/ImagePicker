@@ -66,6 +66,11 @@ public class ImagePicker extends CordovaPlugin {
             // compatibility but unused: the app only consumes file URIs and does
             // no resizing.
 
+            // Sweep stale temp files from previous selections before starting a new one.
+            // The consumer has already read the prior batch by the time the picker reopens,
+            // so deleting here avoids unbounded cache growth without racing the live result.
+            sweepStaleCacheFiles();
+
             final Intent intent = buildPickIntent(max);
             cordova.startActivityForResult(this, intent, PICK_IMAGES_REQUEST);
             return true;
@@ -143,6 +148,27 @@ public class ImagePicker extends CordovaPlugin {
             uris.add(data.getData());
         }
         return uris;
+    }
+
+    /**
+     * Deletes leftover ipick_* temp files from earlier selections. Safe because the
+     * file:// paths returned by a prior getPictures() call have already been consumed
+     * by the time the user reopens the picker.
+     */
+    private void sweepStaleCacheFiles() {
+        final File cacheDir = cordova.getActivity().getCacheDir();
+        if (cacheDir == null) {
+            return;
+        }
+        final File[] files = cacheDir.listFiles();
+        if (files == null) {
+            return;
+        }
+        for (File f : files) {
+            if (f.getName().startsWith("ipick_")) {
+                f.delete();
+            }
+        }
     }
 
     /** Copies a content:// URI into the app-private cache dir and returns the absolute file path. */
