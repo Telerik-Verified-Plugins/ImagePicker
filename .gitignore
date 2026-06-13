@@ -13,3 +13,5 @@ xcuserdata/
 project.xcworkspace/
 tags
 .idea
+# Local review / spec working docs — never committed
+/specifications/
