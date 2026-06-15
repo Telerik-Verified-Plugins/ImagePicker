@@ -53,23 +53,30 @@ window.imagePicker.getPictures(
 
 ### Options
 
+> **Android:** since 2.3.6 the Android side routes through the system photo picker
+> (`PickVisualMedia`), which returns the original image and needs no runtime permission.
+> The `width`, `height`, `quality` and `outputType` options below are still accepted for
+> backwards compatibility but are **ignored on Android**: images are returned at original
+> resolution and always as `file://` URIs (the `BASE64_STRING` output is no longer produced).
+> They continue to apply on iOS.
+
     options = {
         // Android only. Max images to be selected, defaults to 15. If this is set to 1, upon
         // selection of a single image, the plugin will return it.
         maximumImagesCount: int,
         
-        // max width and height to allow the images to be.  Will keep aspect
-        // ratio no matter what.  So if both are 800, the returned image
+        // iOS only (ignored on Android). Max width and height to allow the images to be.
+        // Will keep aspect ratio no matter what.  So if both are 800, the returned image
         // will be at most 800 pixels wide and 800 pixels tall.  If the width is
         // 800 and height 0 the image will be 800 pixels wide if the source
         // is at least that wide.
         width: int,
         height: int,
         
-        // quality of resized image, defaults to 100
+        // iOS only (ignored on Android). quality of resized image, defaults to 100
         quality: int (0-100),
 
-        // output type, defaults to FILE_URIs.
+        // iOS only (ignored on Android). output type, defaults to FILE_URIs.
         // available options are 
         // window.imagePicker.OutputType.FILE_URI (0) or 
         // window.imagePicker.OutputType.BASE64_STRING (1)
@@ -78,38 +85,21 @@ window.imagePicker.getPictures(
     
 ### Note for Android Use
 
-When outputType is FILE_URI the plugin returns images that are stored in a temporary directory.  These images will often not be deleted automatically though.  The files should be moved or deleted after you get their filepaths in javascript. If Base64 Strings are being returned, there is nothing to clean up.
+The selected images are copied into the app-private cache directory and returned as `file://`
+URIs. The plugin sweeps its own leftover temp files (`ipick_*`) at the start of each pick, and
+the cache is app-private (Android may also evict it under storage pressure); even so, move or
+delete the files once you have read them in JavaScript.
 
-## Android 6 (M) Permissions
-On Android 6 you need to request permission to read external storage at runtime when targeting API level 23+.
-Even if the `uses-permission` tags for the Calendar are present in `AndroidManifest.xml`.
+## Permissions
 
-Note that the `hasReadPermission` function will return true when:
+**Android:** none. Since 2.3.6 the plugin uses the system photo picker
+([`PickVisualMedia`](https://developer.android.com/training/data-storage/shared/photopicker)),
+which grants per-selection access without any `READ_MEDIA_*` / `READ_EXTERNAL_STORAGE`
+permission. The `hasReadPermission` / `requestReadPermission` methods are kept as no-op stubs
+(`hasReadPermission` always resolves `true`, `requestReadPermission` succeeds immediately) so
+existing callers keep working — there is nothing to request.
 
-- You're running this on iOS, or
-- You're targeting an API level lower than 23, or
-- You're using Android < 6, or
-- You've already granted permission.
-
-```js
-  function hasReadPermission() {
-    window.imagePicker.hasReadPermission(
-      function(result) {
-        // if this is 'false' you probably want to call 'requestReadPermission' now
-        alert(result);
-      }
-    )
-  }
-
-  function requestReadPermission() {
-    // no callbacks required as this opens a popup which returns async
-    window.imagePicker.requestReadPermission();
-  }
-```
-
-Note that backward compatibility was added by checking for read permission automatically when `getPictures` is called.
-If permission is needed the plugin will now show the permission request popup.
-The user will then need to allow access and invoke the same method again after doing so.
+**iOS:** access is governed by `NSPhotoLibraryUsageDescription`, as before.
 
 
 ## Libraries used
@@ -120,17 +110,11 @@ For iOS this plugin uses the ELCImagePickerController, with slight modifications
 
 https://github.com/B-Sides/ELCImagePickerController
 
-#### MultiImageChooser
+#### AndroidX Activity (`PickVisualMedia`)
 
-For Android this plugin uses MultiImageChooser, with modifications.  MultiImageChooser uses the BSD 2-Clause License which can be found in the file BSD_LICENSE.  Some code inside MultImageChooser is licensed under the Apache license which can be found in the file APACHE_LICENSE.
-
-https://github.com/derosa/MultiImageChooser
-
-#### FakeR
-
-Code(FakeR) was also taken from the phonegap BarCodeScanner plugin.  This code uses the MIT license.
-
-https://github.com/wildabeast/BarcodeScanner
+Since 2.3.6 the Android side uses the system photo picker from `androidx.activity:activity`
+(Apache 2.0). The previous Android implementation (MultiImageChooser, ImageFetcher, FakeR) was
+removed when the system photo picker replaced the in-app gallery.
 
 ## License
 

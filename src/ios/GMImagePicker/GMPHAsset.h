@@ -21,6 +21,7 @@ objc_setAssociatedObject(self, &kProperty##PROPERTY_NAME , PROPERTY_NAME , OBJC_
 
 #import <objc/runtime.h>
 
+#import <UIKit/UIKit.h>
 #import <Photos/PHAsset.h>
 
 @interface PHAsset (GMPHAsset)

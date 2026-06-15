@@ -1,3 +1,4 @@
+#import <UIKit/UIKit.h>
 //
 //  GMImagePickerController.h
 //  GMPhotoPicker
